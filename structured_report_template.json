@@ -1,0 +1,91 @@
+{
+  "Basic Information": [
+    "Age: 59 years",
+    "Sex: Male",
+    "Height: 181 cm",
+    "Weight: 78.1 kg",
+    "BMI: 23.8 (normal range)",
+    "Occupation: Delivery driver (on feet most of the day)"
+  ],
+  "Chief Complaint and Present Illness": [
+    "Primary complaint: Right knee pain despite less severe radiographic findings",
+    "Symptoms: Aching pain after walking, difficulty with stairs, occasional locking/catching",
+    "Pain characteristics: Mild pain with walking and standing, moderate pain with stairs",
+    "Functional limitations: Avoids kneeling, squatting, jumping, and pivoting"
+  ],
+  "Radiographic Findings": [
+    "Right Knee",
+    "Overall Classification: Mild osteoarthritis",
+    "Joint Space: Grade 0 (Normal width, no narrowing) in both compartments",
+    "Osteophytes: Present (internal femoral, internal tibial, external tibial)",
+    "Subchondral Cysts: None detected",
+    "",
+    "Left Knee",
+    "Overall Classification: Moderate osteoarthritis",
+    "Joint Space: Grade 2 (Moderate narrowing) in lateral compartment; Grade 0 in medial",
+    "Osteophytes: Present (internal femoral, internal tibial)",
+    "Subchondral Cysts: Grade 2 (Moderate) in internal femoral and tibial regions"
+  ],
+  "Range of Motion": [
+    "Right Knee: Flexion 105°, Extension lag of 6° (cannot fully extend)",
+    "Left Knee: Normal range of motion (presumed)"
+  ],
+  "Muscle Strength": [
+    "Right Quadriceps: 4/5 (good but not normal)",
+    "Right Hamstrings: 4/5",
+    "Left Leg: Normal strength (5/5)"
+  ],
+  "Past Medical History": [
+    "Right knee injury 15 years ago (twisted playing soccer, never properly evaluated)",
+    "Hypertension diagnosed 5 years ago, controlled with medication",
+    "No previous knee surgeries"
+  ],
+  "Family History": [
+    "Father had knee problems in his 60s",
+    "Mother has rheumatoid arthritis"
+  ],
+  "Current Treatment": [
+    "Medications",
+    "Lisinopril 10mg daily for hypertension",
+    "Ibuprofen 400mg PRN for knee pain (3-4 times weekly)",
+    "No known medication allergies",
+    "Physical Therapy",
+    "No previous physical therapy or rehabilitation",
+    "Self-treatment with ice for swelling",
+    "Tried over-the-counter knee brace without significant benefit"
+  ],
+  "Current Psychological Status": [
+    "Frustrated and worried about knee condition",
+    "Concerned about potential impact on employment",
+    "Motivated to improve function"
+  ],
+  "Current Nutritional Status": [
+    "Generally balanced diet",
+    "Regular consumption of desserts",
+    "No specific dietary restrictions noted"
+  ],
+  "Treatment Goals": [
+    "Reduce pain to maintain current employment",
+    "Improve walking comfort",
+    "Return to light hiking activities"
+  ],
+  "Treatment Preferences": [
+    "Prefers to avoid surgery if possible",
+    "Open to conservative approaches",
+    "Willing to consider most non-surgical interventions"
+  ],
+  "Available Medical/Rehabilitation Resources": [
+    "Good health insurance through employer",
+    "Coverage for specialist visits and physical therapy with small copay",
+    "Lives near major medical center with good access to care",
+    "Can commit to 20–30 minutes of daily home exercises",
+    "Schedule allows for weekly therapy appointments"
+  ],
+  "KOOS Assessment Scores": [
+    "Right Knee Pain: 77.8/100",
+    "Right Knee Symptoms: 67.9/100",
+    "Left Knee Pain & Symptoms: 100/100",
+    "Sport/Recreation Function: 40/100",
+    "Quality of Life: 25/100"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "nutrition": {
+    "goal": "Optimize dietary intake to support joint health and reduce inflammation, while maintaining a balanced and nutrient-dense diet",
+    "format": "Individual counseling with app-based reminders",
+    "frequency": "Weekly sessions for the first 6 weeks, then bi-weekly check-ins",
+    "duration": "12 weeks",
+    "content": [
+      "Increase intake of anti-inflammatory foods (e.g., fatty fish, nuts, seeds, and leafy greens) to reduce joint inflammation (Adequacy)",
+      "Balance macronutrient intake to support muscle strength and joint health (Balance)",
+      "Monitor and manage calorie intake to maintain a healthy weight (Calorie control)"
+    ]
+  },
+  "psychology": {
+    "goal": "Enhance coping strategies and improve emotional well-being to manage knee pain and functional limitations",
+    "format": "Tele-health CBT with daily practice",
+    "frequency": "Weekly sessions for the first 8 weeks, then bi-weekly sessions",
+    "duration": "16 weeks",
+    "content": [
+      "Motivational interviewing to enhance motivation and commitment to rehabilitation (Motivational interviewing)",
+      "CBT restructuring to address negative thoughts and beliefs about knee pain and function (CBT restructuring)",
+      "Digital mindfulness prompts to reduce stress and improve overall well-being (Digital mindfulness prompts)"
+    ]
+  }
+}
