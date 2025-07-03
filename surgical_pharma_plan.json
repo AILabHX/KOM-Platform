@@ -1,0 +1,30 @@
+{
+  "matched_guidelines": [
+    {
+      "guideline": "Scenario 564: The patient reports activity-restricting pain, making it difficult to walk more than short distances equivalent to two city blocks or a shopping mall’s length. Demonstrates reduced range of motion with an inability to fully extend the knee (flexion contracture >10 degrees) or bend it effectively (<90 degrees of flexion). Shows signs of functional instability, affects multiple joint compartments, has mild to moderate joint space narrowing on imaging, with varus/valgus alignment, no mechanical symptoms present, and is within the middle-aged demographic. Total knee arthroplasty Appropriate 7 Unicompartmental knee arthroplasty (medial or lateral tibiofemoral joint, not patellofemoral) Rarely Appropriate 2 + Realignment Osteotomy (varus or valgus producing femoral or tibial osteotomy) Rarely Appropriate 1 +"
+    },
+    {
+      "guideline": "Scenario 225: Experiences pain that restricts mobility over moderate to extended walking distances (greater than a quarter-mile), has limited knee extension with a flexion contracture of over 10 degrees and/or flexion less than 90 degrees, shows no signs of functional instability, has involvement in more than one joint compartment, exhibits mild to moderate symptoms, shows joint space narrowing on imaging, displays varus or valgus knee alignment, has mechanical symptoms, and falls within the middle-aged demographic. Total knee arthroplasty Appropriate 7 Unicompartmental knee arthroplasty (medial or lateral tibiofemoral joint, not patellofemoral) Rarely Appropriate 2 + Realignment Osteotomy (varus or valgus producing femoral or tibial osteotomy) Rarely Appropriate 1 +"
+    },
+    {
+      "guideline": "Scenario 482: Patient experiences severe pain and restricted mobility: The individual reports moderate to severe discomfort during short-distance activities (e.g., walking two city blocks or navigating a shopping mall). Range of motion is limited with an inability to fully straighten the knee (flexion contracture beyond 10 degrees) and/or bend it adequately (flexion less than 90 degrees). Functional joint stability is intact, symptoms primarily affect one compartment, with mild to moderate severity observed. Imaging shows joint space narrowing but normal alignment overall. Additional mechanical symptoms are present, and the patient is relatively young. Total knee arthroplasty May Be Appropriate 4 Unicompartmental knee arthroplasty (medial or lateral tibiofemoral joint, not patellofemoral) May Be Appropriate 5 Realignment Osteotomy (varus or valgus producing femoral or tibial osteotomy) Rarely Appropriate 3"
+    }
+  ],
+  "medication_plan": [
+    {
+      "name": "Ibuprofen",
+      "dosage": "400 mg",
+      "frequency": "PRN, up to 3-4 times weekly"
+    },
+    {
+      "name": "Acetaminophen",
+      "dosage": "500 mg",
+      "frequency": "PRN, up to 3-4 times daily"
+    },
+    {
+      "name": "Intraarticular Corticosteroids",
+      "dosage": "Single injection as needed",
+      "frequency": "Every 3-4 months as indicated"
+    }
+  ]
+}

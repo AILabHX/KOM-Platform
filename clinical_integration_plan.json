@@ -1,0 +1,44 @@
+{
+  "Goals": {
+    "Primary": "Reduce knee pain and improve functional mobility",
+    "Secondary": "Enhance joint stability, strength, and overall quality of life"
+  },
+  "InterventionPlan": {
+    "Medication": {
+      "Summary": "Ibuprofen 400 mg PRN (up to 3-4 times weekly), Acetaminophen 500 mg PRN (up to 3-4 times daily), and intraarticular corticosteroids as needed every 3-4 months. Monitor for side effects and adjust dosages as necessary."
+    },
+    "NutritionPlan": {
+      "Framework": "ABCMV",
+      "Description": "Increase anti-inflammatory foods (fatty fish, nuts, seeds, leafy greens). Balance macronutrients (protein, carbs, fats) for muscle and joint health. Manage calorie intake to maintain a healthy weight. Meal examples: grilled salmon with quinoa and spinach, mixed nuts, and a green smoothie. Use app-based reminders for adherence."
+    },
+    "ExercisePlan": {
+      "Framework": "FITTVP",
+      "Phases": {
+        "Week1-4": {
+          "Goal": "Reduce pain and improve flexibility",
+          "Prescription": "Aerobic: 3x/week, RPE 10-12, 20 min/session, stationary cycling, 60 min/week. Flexibility: 5x/week, RPE 9-11, 15 min/session, static stretching, 75 min/week. Progression: Increase time by 5 min every 2 weeks."
+        },
+        "Week5-8": {
+          "Goal": "Enhance strength and stability",
+          "Prescription": "Aerobic: 3x/week, RPE 12-14, 25 min/session, brisk walking, 75 min/week. Strength: 2x/week, RPE 13-15, 20 min/session, bodyweight exercises, 40 min/week. Balance: 3x/week, RPE 10-12, 10 min/session, single-leg balance, 30 min/week. Progression: Increase intensity and duration."
+        },
+        "Week9-12": {
+          "Goal": "Integrate functional movements",
+          "Prescription": "Aerobic: 3x/week, RPE 14-16, 30 min/session, elliptical trainer, 90 min/week. Strength: 2x/week, RPE 15-17, 25 min/session, weighted exercises, 50 min/week. Flexibility: 5x/week, RPE 10-12, 20 min/session, dynamic stretching, 100 min/week. Progression: Increase resistance and weight."
+        }
+      }
+    },
+    "PsychologicalSupport": {
+      "Summary": "Weekly CBT sessions for the first 8 weeks, then bi-weekly. Motivational interviewing, CBT restructuring, and digital mindfulness prompts to manage pain and improve well-being."
+    },
+    "SurgicalOrInjectionConsiderations": {
+      "Summary": "Total knee arthroplasty may be appropriate if conservative measures fail. Consider unicompartmental knee arthroplasty or realignment osteotomy based on specific criteria and patient response."
+    },
+    "SafetyMonitoring": {
+      "Summary": "Monitor for medication side effects. Manage flare-ups with rest, ice, and NSAIDs. Watch for red flags like increased swelling, severe pain, or mechanical symptoms. Review progress every 4 weeks."
+    }
+  },
+  "AccessibilityFeasibility": "The plan is designed to fit the patient's environment and resources, using home-based exercises, tele-health CBT, and app-based nutrition support.",
+  "PersonalizationRationale": "The plan addresses the patient's activity-restricting pain, limited ROM, and functional instability. It incorporates preferences for home-based exercises and tele-health, and considers comorbidities and age.",
+  "EvidenceCompliance": "The plan adheres to evidence-based guidelines, including ACR, OARSI, and AAOS recommendations for knee OA management, with a focus on multimodal rehabilitation and patient-centered care."
+}
