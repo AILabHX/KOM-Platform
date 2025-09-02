@@ -1,5 +1,0 @@
-streamlit
-streamlit-autorefresh
-streamlit-image-select
-fpdf
-markdown
