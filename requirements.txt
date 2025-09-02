@@ -1,0 +1,7 @@
+streamlit>1.21.0
+streamlit-autorefresh
+streamlit-image-select
+fpdf
+markdown
+dashscope
+openai
