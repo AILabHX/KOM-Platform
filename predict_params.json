@@ -1,0 +1,66 @@
+{
+  "XRKL_L": 2,
+  "XRKL_R": 3,
+  "XRJSL_L": 1,
+  "XRJSM_L": 0,
+  "XROSFL_L": 1,
+  "XROSFM_L": 0,
+  "XROSTL_L": 1,
+  "XROSTM_L": 0,
+  "XRJSL_R": 1,
+  "XRJSM_R": 0,
+  "XROSFL_R": 1,
+  "XROSFM_R": 0,
+  "XROSTL_R": 1,
+  "XROSTM_R": 0,
+  "XRSCFL_R": 1,
+  "AGE": 50,
+  "BMI": 25,
+  "WEIGHT": 70,
+  "RFmaxF": 0.5,
+  "REmaxF": 0.6,
+  "LFmaxF": 0.7,
+  "LEmaxF": 0.8,
+  "RFmaxF_BMI": 0.02,
+  "REmaxF_BMI": 0.03,
+  "LFmaxF_BMI": 0.04,
+  "LEmaxF_BMI": 0.05,
+  "KOOSPain_R": 78, 
+  "KOOSSym_R": 68,
+  "KOOSPain_L": 100,
+  "KOOSSym_L": 80,
+  "KOOSSport": 40,
+  "KOOSQOL": 25,
+  "RKPain_V00": 78,
+  "RKSym_V00": 68,
+  "LKPain_V00": 100,
+  "LKPain_V01": 89,
+  "LKPain_V04": 84,
+  "LKSym_V00": 80,
+  "KSport_V00": 40,
+  "KQOL_V00": 25,
+  "RKImg_V00": "Moderate",
+  "LKImg_V00": "Mild",
+  "key_factors.right_knee_symptoms_year2": [
+    {
+      "feature": "Osteophytes on baseline left X-ray",
+      "impact": -1.08,
+      "effect": "worsens symptoms"
+    },
+    {
+      "feature": "Lower KOOS Pain score (more pain)",
+      "impact": -1.02,
+      "effect": "worsens symptoms"
+    },
+    {
+      "feature": "Lower Quality of Life score",
+      "impact": -0.94,
+      "effect": "worsens symptoms"
+    },
+    {
+      "feature": "Peak knee-extension torque (below cohort mean)",
+      "impact": 1.19,
+      "effect": "protective factor"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "rightKnee": {
+    "jointSpaceAssessment": {
+      "lateralJointSpace": {
+        "grade": 0,
+        "description": "Normal width, no narrowing"
+      },
+      "medialJointSpace": {
+        "grade": 1,
+        "description": "Mild narrowing"
+      },
+      "overallSeverity": "Mild osteoarthritis"
+    },
+    "osteophyteAssessment": {
+      "MedialFemoralOsteophytes": 0,
+      "LateralFemoralOsteophytes": 2,
+      "MedialTibialOsteophytes": 1,
+      "LateralTibialOsteophytes": 1
+    },
+    "subchondralCystAssessment": {
+      "MedialFemoralSubchondralCysts": {
+        "grade": 0,
+        "description": "None detected"
+      },
+      "LateralFemoralSubchondralCysts": {
+        "grade": 0,
+        "description": "None detected"
+      },
+      "MedialTibialSubchondralCysts": {
+        "grade": 0,
+        "description": "None detected"
+      },
+      "LateralTibialSubchondralCysts": {
+        "grade": 0,
+        "description": "None detected"
+      }
+    }
+  },
+  "leftKnee": {
+    "jointSpaceAssessment": {
+      "lateralJointSpace": {
+        "grade": 2,
+        "description": "Moderate narrowing"
+      },
+      "medialJointSpace": {
+        "grade": 0,
+        "description": "Normal width, no narrowing"
+      },
+      "overallSeverity": "Moderate osteoarthritis"
+    },
+    "osteophyteAssessment": {
+      "MedialFemoralOsteophytes": 0,
+      "LateralFemoralOsteophytes": 2,
+      "MedialTibialOsteophytes": 0,
+      "LateralTibialOsteophytes": 1
+    },
+    "subchondralCystAssessment": {
+      "MedialFemoralSubchondralCysts": {
+        "grade": 0,
+        "description": "None detected"
+      },
+      "LateralFemoralSubchondralCysts": {
+        "grade": 2,
+        "description": "Moderate"
+      },
+      "MedialTibialSubchondralCysts": {
+        "grade": 0,
+        "description": "None detected"
+      },
+      "LateralTibialSubchondralCysts": {
+        "grade": 2,
+        "description": "Moderate"
+      }
+    }
+  }
+}

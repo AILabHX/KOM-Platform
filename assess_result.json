@@ -1,0 +1,42 @@
+{
+  "default": {
+    "Right Knee": {
+      "Joint Space Assessment (Grade 0-3)": [
+        "Lateral Joint Space: Grade 0 (Normal width, no narrowing)",
+        "Medial Joint Space: Grade 1 (Mild narrowing)",
+        "Overall Severity: Mild osteoarthritis"
+      ],
+      "Osteophyte Assessment (Present/Absent)": [
+        "Medial Femoral Osteophytes: Present",
+        "Lateral Femoral Osteophytes: Absent",
+        "Medial Tibial Osteophytes: Present",
+        "Lateral Tibial Osteophytes: Present"
+      ],
+      "Subchondral Cyst Assessment (Grade 0-3)": [
+        "Medial Femoral Subchondral Cysts: Grade 0 (None detected)",
+        "Lateral Femoral Subchondral Cysts: Grade 0 (None detected)",
+        "Medial Tibial Subchondral Cysts: Grade 0 (None detected)",
+        "Lateral Tibial Subchondral Cysts: Grade 0 (None detected)"
+      ]
+    },
+    "Left Knee": {
+      "Joint Space Assessment (Grade 0-3)": [
+        "Lateral Joint Space: Grade 2 (Moderate narrowing)",
+        "Medial Joint Space: Grade 0 (Normal width, no narrowing)",
+        "Overall Severity: Moderate osteoarthritis"
+      ],
+      "Osteophyte Assessment (Present/Absent)": [
+        "Medial Femoral Osteophytes: Present",
+        "Lateral Femoral Osteophytes: Absent",
+        "Medial Tibial Osteophytes: Present",
+        "Lateral Tibial Osteophytes: Absent"
+      ],
+      "Subchondral Cyst Assessment (Grade 0-3)": [
+        "Internal Femoral Subchondral Cysts: Grade 2 (Moderate)",
+        "Lateral Femoral Subchondral Cysts: Grade 0 (None detected)",
+        "Internal Tibial Subchondral Cysts: Grade 2 (Moderate)",
+        "Lateral Tibial Subchondral Cysts: Grade 0 (None detected)"
+      ]
+    }
+  }
+}

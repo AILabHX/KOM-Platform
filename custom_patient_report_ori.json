@@ -1,0 +1,121 @@
+{
+  "basicInformation": {
+    "age": 59,
+    "sex": "Male",
+    "height": 181,
+    "weight": 78.1,
+    "bmi": 23.8,
+    "bmiClassification": "normal range",
+    "occupation": "Delivery driver (on feet most of the day)"
+  },
+  "chiefComplaintAndPresentIllness": {
+    "primaryComplaint": "Right knee pain despite less severe radiographic findings",
+    "symptoms": "Aching pain after walking, difficulty with stairs, occasional locking/catching",
+    "painCharacteristics": "Mild pain with walking and standing, moderate pain with stairs",
+    "functionalLimitations": "Avoids kneeling, squatting, jumping, and pivoting"
+  },
+  "radiographicFindings": {
+    "rightKnee": {
+      "jointSpaceAssessment": {
+        "lateralJointSpace": { "grade": 0, "description": "Normal width, no narrowing" },
+        "medialJointSpace":  { "grade": 1, "description": "Mild narrowing" },
+        "overallSeverity": "Mild osteoarthritis"
+      },
+      "osteophyteAssessment": {
+        "internalFemoralOsteophytes": 0,
+        "externalFemoralOsteophytes": 2,
+        "internalTibialOsteophytes": 1,
+        "externalTibialOsteophytes": 1
+      },
+      "subchondralCystAssessment": {
+        "internalFemoralSubchondralCysts": { "grade": 0, "description": "None detected" },
+        "externalFemoralSubchondralCysts": { "grade": 0, "description": "None detected" },
+        "internalTibialSubchondralCysts":  { "grade": 0, "description": "None detected" },
+        "externalTibialSubchondralCysts":  { "grade": 0, "description": "None detected" }
+      }
+    },
+    "leftKnee": {
+      "jointSpaceAssessment": {
+        "lateralJointSpace": { "grade": 2, "description": "Moderate narrowing" },
+        "medialJointSpace":  { "grade": 0, "description": "Normal width, no narrowing" },
+        "overallSeverity": "Moderate osteoarthritis"
+      },
+      "osteophyteAssessment": {
+        "internalFemoralOsteophytes": 0,
+        "externalFemoralOsteophytes": 2,
+        "internalTibialOsteophytes": 0,
+        "externalTibialOsteophytes": 1
+      },
+      "subchondralCystAssessment": {
+        "internalFemoralSubchondralCysts": { "grade": 0, "description": "None detected" },
+        "externalFemoralSubchondralCysts": { "grade": 2, "description": "Moderate" },
+        "internalTibialSubchondralCysts":  { "grade": 0, "description": "None detected" },
+        "externalTibialSubchondralCysts":  { "grade": 2, "description": "Moderate" }
+      }
+    }
+  },
+  "rangeOfMotion": {
+    "rightKnee": "Flexion 105°, Extension lag of 6° (cannot fully extend)",
+    "leftKnee": "Normal range of motion (presumed)"
+  },
+  "muscleStrength": {
+    "rightQuadriceps": "4/5 (good but not normal)",
+    "rightHamstrings": "4/5",
+    "leftLeg": "Normal strength (5/5)"
+  },
+  "pastMedicalHistory": [
+    "Right knee injury 15 years ago (twisted playing soccer, never properly evaluated)",
+    "Hypertension diagnosed 5 years ago, controlled with medication",
+    "No previous knee surgeries"
+  ],
+  "familyHistory": [
+    "Father had knee problems in his 60s",
+    "Mother has rheumatoid arthritis"
+  ],
+  "currentTreatment": {
+    "medications": [
+      "Lisinopril 10mg daily for hypertension",
+      "Ibuprofen 400mg PRN for knee pain (3-4 times weekly)",
+      "No known medication allergies"
+    ],
+    "physicalTherapy": [
+      "No previous physical therapy or rehabilitation",
+      "Self-treatment with ice for swelling",
+      "Tried over-the-counter knee brace without significant benefit"
+    ]
+  },
+  "currentPsychologicalStatus": [
+    "Frustrated and worried about knee condition",
+    "Concerned about potential impact on employment",
+    "Motivated to improve function"
+  ],
+  "currentNutritionalStatus": [
+    "Generally balanced diet",
+    "Regular consumption of desserts",
+    "No specific dietary restrictions noted"
+  ],
+  "treatmentGoals": [
+    "Reduce pain to maintain current employment",
+    "Improve walking comfort",
+    "Return to light hiking activities"
+  ],
+  "treatmentPreferences": [
+    "Prefers to avoid surgery if possible",
+    "Open to conservative approaches",
+    "Willing to consider most non-surgical interventions"
+  ],
+  "availableResources": [
+    "Good health insurance through employer",
+    "Coverage for specialist visits and physical therapy with small copay",
+    "Lives near major medical center with good access to care",
+    "Can commit to 20-30 minutes of daily home exercises",
+    "Schedule allows for weekly therapy appointments"
+  ],
+  "koosAssessmentScores": {
+    "rightKneePain": 77.8,
+    "rightKneeSymptoms": 67.9,
+    "leftKneePainAndSymptoms": 100,
+    "sportRecreationFunction": 40,
+    "qualityOfLife": 25
+  }
+}
