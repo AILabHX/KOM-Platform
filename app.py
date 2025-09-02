@@ -13,6 +13,11 @@ import streamlit_image_select as sis
 from fpdf import FPDF
 import io
 import markdown
+from utils.qwen_agent import call_qwen_agent
+import os
+import math
+import html
+
 
 # =============================================================================
 # 配置和常量
@@ -24,7 +29,7 @@ PAGE_CONFIG = {
 
 CHAT_CONFIG = {
     "update_interval": 2,
-    "height": 640,
+    "height": 400,
     "max_width": "80%"
 }
 
@@ -38,6 +43,7 @@ IMAGE_PATHS = {
 
 CASES_FILE = "cases.json"
 PARAMS_FILE = "predict_params.json"
+PREDICT_FILE = "predict_params_ori.json"
 
 
 # =============================================================================
@@ -55,7 +61,6 @@ def get_base64_image(image_path: str) -> Optional[str]:
         st.error(f"无法加载图片 {image_path}: {e}")
     return None
 
-
 @st.cache_data
 def load_initial_chat_history(file_path: str = "initial_chat.json") -> List[Dict]:
     """从 JSON 文件加载初始聊天历史"""
@@ -68,7 +73,6 @@ def load_initial_chat_history(file_path: str = "initial_chat.json") -> List[Dict
     except Exception as e:
         st.error(f"加载初始聊天对话失败: {e}")
     return []
-
 
 @st.cache_data
 def load_analysis_report(json_file="assess_result.json") -> Dict:
@@ -97,15 +101,14 @@ def load_plan(agent_type: str):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-
 def clean_text_for_pdf(text: str) -> str:
     replacements = {
-        "–": "-",  # 长破折号
-        "—": "-",  # 全角破折号
+        "–": "-",   # 长破折号
+        "—": "-",   # 全角破折号
         "“": "\"",  # 中文引号
         "”": "\"",
         "’": "'",
-        "•": "-",  # 项目符号
+        "•": "-",   # 项目符号
         "→": "->",
         "…": "...",
         "©": "(c)",
@@ -119,7 +122,6 @@ def strip_non_latin1(text: str) -> str:
     """去除无法被 Latin-1 编码的字符（如 emoji、中文）"""
     return text.encode("latin-1", errors="ignore").decode("latin-1")
 
-
 def generate_pdf(text: str) -> bytes:
     pdf = FPDF()
     pdf.add_page()
@@ -132,14 +134,6 @@ def generate_pdf(text: str) -> bytes:
 
     return pdf.output(dest="S").encode("latin1")
 
-
-def generate_report_text_from_prediction(params: dict) -> str:
-    lines = ["Prediction Report\n", "=" * 30 + "\n"]
-    for k, v in params.items():
-        lines.append(f"{k}: {json.dumps(v, ensure_ascii=False) if isinstance(v, (dict, list)) else v}")
-    return "\n".join(lines)
-
-
 def safe_image_display(image_path: str, caption: str = "", **kwargs):
     """显示图片"""
     try:
@@ -150,18 +144,18 @@ def safe_image_display(image_path: str, caption: str = "", **kwargs):
     except Exception as e:
         st.error(f"显示图片时出错: {e}")
 
-
 def generate_report_text_from_prediction(params: dict) -> str:
     lines = []
-
+    
     # 1. Symptom Trajectory Forecast
     lines.append("📊 Symptom Trajectory Forecast (KOOS, 0–100)")
     symptom_rows = [
         ("Right Knee Pain", "symptom_trajectory.right_knee.pain"),
         ("Right Knee Symptoms", "symptom_trajectory.right_knee.symptoms"),
+        ("Left Knee Pain", "symptom_trajectory.left_knee.pain"),
+        ("Left Knee Symptoms", "symptom_trajectory.left_knee.symptoms"),
         ("Sport/Recreation Function", "symptom_trajectory.right_knee.sport_recreation_function"),
-        ("Quality of Life", "symptom_trajectory.right_knee.quality_of_life"),
-        ("Left Knee Pain", "symptom_trajectory.left_knee.pain")
+        ("Quality of Life", "symptom_trajectory.right_knee.quality_of_life")
     ]
     for label, base_key in symptom_rows:
         v00 = params.get(f"{base_key}.v00", "N/A")
@@ -258,6 +252,7 @@ def get_navigation_styles(logo_base64: str) -> str:
         color: #888;
     }}
     </style>
+
     <div class="nav-container">
         <div class="left-section">
             <img src="data:image/png;base64,{logo_base64}" class="logo-img" />
@@ -275,7 +270,7 @@ def get_navigation_styles(logo_base64: str) -> str:
                 <input type="hidden" name="page" value="Assessing Current Status">
                 <button type="submit" class="agent-button">
                     <img src="https://www.svgrepo.com/download/285252/robot.svg" alt="robot icon">
-                    Assess Agent
+                    评估(Assessment Agent)
                 </button>
             </form>
             <div class="arrow-icon">➡️</div>
@@ -283,7 +278,7 @@ def get_navigation_styles(logo_base64: str) -> str:
                 <input type="hidden" name="page" value="Predicting Progression Risk">
                 <button type="submit" class="agent-button">
                     <img src="https://www.svgrepo.com/download/285252/robot.svg" alt="robot icon">
-                    Predict Agent
+                    预测(Risk Agent)
                 </button>
             </form>
             <div class="arrow-icon">➡️</div>
@@ -291,7 +286,7 @@ def get_navigation_styles(logo_base64: str) -> str:
                 <input type="hidden" name="page" value="Tailored Therapy Recommendation">
                 <button type="submit" class="agent-button">
                     <img src="https://www.svgrepo.com/download/285252/robot.svg" alt="robot icon">
-                    Therapy Agent
+                    处方(Therapy Agent)
                 </button>
             </form>
         </div>
@@ -313,34 +308,41 @@ def get_chat_styles() -> str:
         border-left: 5px solid transparent;
         background-color: #f9f9f9;
     }
+
     .chat-content {
         white-space: normal !important;
         word-break: break-word;
         overflow-wrap: break-word;
         line-height: 1.6;
     }
+
     .exercise {
         background-color: #f0fff4;
         border-left-color: #34c759;
     }
+
     .pharma {
         background-color: #f0f8ff;
         border-left-color: #1e90ff;
     }
+
     .nutrition {
         background-color: #fffaf0;
         border-left-color: #f4b400;
     }
+
     .summary {
         background-color: #fff0f0;
         border-left-color: #ff6b6b;
     }
+
     .chat-icon {
         font-weight: bold;
         margin-bottom: 6px;
         display: block;
         color: #333;
     }
+
     .chat-bubble strong {
         display: inline-block;
         margin-bottom: 4px;
@@ -348,6 +350,7 @@ def get_chat_styles() -> str:
     }
     </style>
     """
+
 
 
 # =============================================================================
@@ -364,6 +367,8 @@ class ChatManager:
             st.session_state.chat_step = 1
             st.session_state.last_update_time = time.time()
 
+
+
     def update_progress(self):
         """更新聊天进度（非阻塞）"""
         current_time = time.time()
@@ -371,7 +376,41 @@ class ChatManager:
                 current_time - st.session_state.last_update_time > CHAT_CONFIG["update_interval"]):
             st.session_state.chat_step += 1
             st.session_state.last_update_time = current_time
+    # def update_progress(self):
+    #     current_time = time.time()
+    #     step = st.session_state.chat_step
+    #     history = st.session_state.chat_history
+    
+    #     # 如果未显示完全部对话，并且刷新间隔已达
+    #     if step < len(self.initial_history) and current_time - st.session_state.last_update_time > CHAT_CONFIG["update_interval"]:
+    
+    #         next_msg = self.initial_history[step]
+    
+    #         # 👤 如果下一条是用户内容，直接添加
+    #         if next_msg["role"] == "user":
+    #             history.append(next_msg)
+    
+    #         # 🤖 如果下一条是 AI 回答：动态生成（用上一条 user 消息作为 prompt）
+    #         elif next_msg["role"] == "assistant":
+    #             # ⛔ 安全校验：若 history 为空或上一条不是 user，跳过
+    #             if len(history) == 0 or history[-1]["role"] != "user":
+    #                 st.warning("⚠️ 无法生成 AI 回答：找不到上一条用户消息")
+    #                 return
+    
+    #             user_prompt = history[-1]["content"]
+    
+    #             app_id = "c968f91131ac432787f5ef81f51922ba"
+    #             api_key = os.getenv("DASHSCOPE_API_KEY")
+    #             ai_reply = self.generate_response(user_prompt, app_id, api_key)
+    
+    #             history.append({"role": "assistant", "content": ai_reply})
+    
+    #         # ✅ 每推进一条，step +1，更新时间
+    #         st.session_state.chat_step += 1
+    #         st.session_state.last_update_time = current_time
 
+
+   
     def render_message(self, role: str, content: str) -> str:
         """渲染单条消息（AI左侧，用户右侧）"""
         if role == "user":
@@ -396,12 +435,35 @@ class ChatManager:
             """
 
     def render_chat_interface(self):
-        """自动逐条渲染聊天界面"""
+        for msg in st.session_state.chat_history[:st.session_state.chat_step]:
+            print("原始 content 内容：", repr(msg["content"]))
+
+        # # def process_content(content):
+        # #     # 将换行符转换为 HTML 换行标签
+        # #     return content.replace("\n", "<br>")
+        # def process_content(content):
+        #     print("替换前：", content[:50])  # 打印前50字符
+        #     content = content.replace("\n", "<br>")
+        #     content = content.replace("   ", "&nbsp;&nbsp;&nbsp;")
+        #     print("替换后：", content[:50])  # 打印替换后的前50字符
+        #     return content
+        
+        # chat_html = "".join([
+        #     self.render_message(msg["role"], process_content(msg["content"]))  # 应用换行处理
+        #     for msg in st.session_state.chat_history[:st.session_state.chat_step]
+        # ])
         chat_html = "".join([
-            self.render_message(msg["role"], msg["content"])
+            self.render_message(
+                msg["role"],
+                # 关键修改：先处理字面意义的 \\n（\和n组成的字符），再转<br>
+                msg["content"]
+                    .replace("\\n", "\n")  # 第一步：将字面的 \n 转为真正的换行符
+                    .replace("\n", "<br>")  # 第二步：将真正的换行符转为 HTML 换行
+                    .replace("   ", "&nbsp;&nbsp;&nbsp;")  # 保留缩进
+            )
             for msg in st.session_state.chat_history[:st.session_state.chat_step]
         ])
-
+    
         height = CHAT_CONFIG["height"]
         components.html(f"""
             <div style="height: {height}px; overflow-y: auto; padding: 10px 10px 40px 10px; border: 1px solid #ccc; 
@@ -418,32 +480,48 @@ class ChatManager:
             </script>
         """, height=height)
 
+
+  
     def handle_user_input(self):
-        """处理用户输入"""
         user_input = st.chat_input("Please enter your symptoms, medical history or problems...")
         if user_input:
-            st.session_state.chat_history.append({"role": "user", "content": user_input})
-            # 生成智能回复
-            response = self.generate_response(user_input)
+            st.session_state.chat_history.append({"role": "user", "content": user_input})            
+            app_id = "c968f91131ac432787f5ef81f51922ba"
+            api_key = os.getenv("DASHSCOPE_API_KEY")
+            response = self.generate_response(user_input, app_id, api_key)
             st.session_state.chat_history.append({"role": "assistant", "content": response})
-
+    
             st.session_state.chat_step = len(st.session_state.chat_history)
             st.rerun()
 
-    def generate_response(self, user_input: str) -> str:
-        """生成助手回复"""
-        responses = {
-            "Pain": "Please describe in detail the nature, frequency and triggering factors of the pain.",
-            "Swelling": "When does swelling usually occur? Is there any accompanying fever?",
-            "Stiffness": "How long does morning stiffness last? Was there any improvement after the activity?",
-            "Cracking": "Is joint cracking accompanied by pain?"
-        }
 
-        for keyword, response in responses.items():
-            if keyword in user_input:
-                return response
-
-        return "Thank you for your feedback. I will conduct an analysis based on this information. Please continue to describe your symptoms."
+    
+    # def generate_response(self, user_input: str) -> str:
+    #     """生成助手回复"""
+    #     responses = {
+    #         "Pain": "Please describe in detail the nature, frequency and triggering factors of the pain.",
+    #         "Swelling": "When does swelling usually occur? Is there any accompanying fever?",
+    #         "Stiffness": "How long does morning stiffness last? Was there any improvement after the activity?",
+    #         "Cracking": "Is joint cracking accompanied by pain?"
+    #     }
+        
+    #     for keyword, response in responses.items():
+    #         if keyword in user_input:
+    #             return response
+        
+    #     return "Thank you for your feedback. I will conduct an analysis based on this information. Please continue to describe your symptoms."
+    def generate_response(self, user_input: str, app_id: str, api_key: str) -> str:
+        if not api_key:
+            return "❌ 请在 Hugging Face 的 Secrets 中配置 DASHSCOPE_API_KEY。"
+    
+        try:
+            st.write(f"🚀 正在调用 Qwen，输入：{user_input}")
+            response = call_qwen_agent(user_input, app_id, api_key)
+            st.write(f"✅ Qwen 返回前200字：{response[:200]}")
+            return response
+        except Exception as e:
+            st.write(f"❌ Qwen 调用失败：{e}")
+            return "调用 Qwen API 出错，请稍后再试。"
 
 
 # =============================================================================
@@ -456,7 +534,6 @@ def render_navigation():
         st.markdown(get_navigation_styles(logo_base64), unsafe_allow_html=True)
     else:
         st.title("Knee Osteoarthritis Management Platform")
-
 
 def inject_agent_styles():
     """注入各智能体颜色样式"""
@@ -495,11 +572,64 @@ def inject_agent_styles():
 def render_home_page():
     """渲染首页"""
     abstract_col, figure_col = st.columns([0.9, 1.1])
-
+    
+    # with abstract_col:
+    #     st.markdown('<h4 style="font-size:22px;">About</h4>', unsafe_allow_html=True)
+    #     st.markdown("""
+    #     平台使用流程等
+    #     """)
     with abstract_col:
         st.markdown('<h4 style="font-size:22px;">About</h4>', unsafe_allow_html=True)
         st.markdown("""
-        平台使用流程等
+KOM: Knee Osteoarthritis Chronic Disease Management System
+From the Sports Medicine Center, West China Hospital, Sichuan University
+KOM is an intelligent, multi-agent (Multi-Agent) AI system that supports the full KOA care pathway—assessment → risk prediction → individualized therapy—to enable precise, standardized, and scalable chronic disease management for knee osteoarthritis.
+
+Quick Start: How to Use the Web App
+In the top-right corner of the page, you’ll see three buttons, each mapping to a core module. Click from left to right to experience the end-to-end AI-assisted diagnosis and prescription flow.
+
+Interaction tips
+In Assessment, start a guided dialogue to capture medical history. You can also upload bilateral AP knee X-rays via the button below and complete structured data entry with on-screen prompts. Go to Risk to automatically pull prior inputs and generate 2-year / 4-year predictions for symptoms (KOOS) and radiographic outcomes, with patient-specific risk factor explanations (via SHAP). In Therapy, launch a multidisciplinary, multi-agent (MDT) discussion to produce an evidence-based, individualized, and actionable management plan (covering exercise, surgical/pharmacologic, nutrition, and psychological sub-prescriptions). Each module can also be used independently with manual data entry—handy for different clinical settings.
+
+What KOM Is
+KOM (Knee Osteoarthritis Manager) is the first end-to-end multi-agent AI system purpose-built for KOA, developed by the Sports Medicine Center, West China Hospital, with a cross-disciplinary team. It integrates LLMs, ResNet-based imaging, classical machine learning, and MDT-style multi-agent collaboration to cover:
+Disease Assessment: structured dialogue + automated X-ray analysis to generate a standardized case report.
+Progression Prediction: 2-/4-year forecasts for KOOS subscales and KL grades, plus individualized etiology/risk explanations.
+Individualized Therapy: multi-agent simulation of MDT to output evidence-based, executable plans.
+
+Modules & Capabilities
+1) Assessment Agent
+Structured dialogue intake (LLM with optimized prompts): auto-completes missing fields, explains medical terms, and guides KOOS collection.
+Intelligent X-ray analysis: a deep-learning pipeline trained on the OAI dataset for knee localization, KOA grading, medial/lateral joint space narrowing, osteophytes, and subchondral sclerosis.
+Output: one-click case evaluation report in clinical style. 
+
+2) Progression Prediction Agent (Risk Agent)
+Functional outcomes: regression for KOOS subscales at 2 and 4 years. Radiographic outcomes: classification for KL grades at 2 and 4 years (ensemble of algorithms). Explainability: SHAP shows each patient’s risk contributions (e.g., osteophytes, pain scores, muscle strength) to guide interventions. 
+3) Treatment Multi-Agent Cluster (Therapy Agent)
+MDT via multi-agent collaboration: Exercise/Rehab, Orthopedics (surgery/pharmacology), Psycho-Nutrition, and a Clinical Integration agent.
+Evidence bases: structured entries curated from guidelines and peer-reviewed literature (Exercise 975; Surgery 1549; Rehab 934; Psychology 210; Nutrition 349).Output: individualized plans aligned with FITT-VP (exercise) and ABCMV (nutrition), emphasizing safety and actionability.
+
+Workflow at a Glance
+Data Intake: upload X-rays + structured interview
+Auto Analysis: radiographic grading & key signs → evaluation report
+Risk Prediction: 2-/4-year functional & imaging outcomes + personalized risk explanation
+MDT Therapy: multi-agent discussion → evidence-based individualized plan
+Review & Export: clinicians can revise at any step and export standardized documents
+
+Code & Live Demo
+GitHub (Open Source): https://github.com/jacobliuweizhi/KOM
+Live Demo (Hugging Face Spaces):
+https://huggingface.co/spaces/Miemie123/Streamlit?page=Tailored+Therapy+Recommendation&start=1
+License: GNU AGPL v3.0. RAG references and example code are included in the repo.
+
+Ongoing Research & Productization
+Large-scale RCT: Evaluating KOM-assisted care vs. routine clinical workflows, focusing on real-world effectiveness and safety.
+Sports-Med LLM: In parallel development to enhance cross-task generalization and on-device, real-time assessment—especially for non-radiographic scenarios.
+
+Team & Contact (Corresponding Authors)
+Prof. Yong Nie (Department of Orthopedic Surgery, West China Hospital) ｜ nieyong1983@wchscu.cn
+Prof. Kang Li (Sichuan University / Shanghai AI Lab) ｜ likang@wchscu.cn
+Prof. Jian Li (Sports Medicine Center, West China Hospital) ｜ lijian_sportsmed@163.com
         """)
 
     with figure_col:
@@ -507,8 +637,7 @@ def render_home_page():
         safe_image_display(IMAGE_PATHS["framework"], "Framework Overview", use_container_width=True)
 
     st.markdown("---")
-    st.markdown(
-        "⚠️This website is at an early stage of development and intended for research purposes only. For collaboration or to report bugs, please contact us at ……. Thank you! 本网页仅用于研究用途")
+    st.markdown("⚠️This website is at an early stage of development and intended for research purposes only. Thank you! 本网页仅用于研究用途")
     # 每秒刷新一次（根据需要调整频率），最多刷新 N 次
 
 
@@ -530,7 +659,7 @@ def render_centered_image_full(image_path, width=300):
     with open(image_path, "rb") as img_file:
         img_bytes = img_file.read()
         encoded = base64.b64encode(img_bytes).decode("utf-8")
-
+    
     html = f'''
         <div style="width: 100%; text-align: center; margin-top: 20px;">
             <img src="data:image/png;base64,{encoded}" width="{width}" />
@@ -538,10 +667,8 @@ def render_centered_image_full(image_path, width=300):
     '''
     st.markdown(html, unsafe_allow_html=True)
 
-
 def spacer(height_px=24):
     st.markdown(f"<div style='height: {height_px}px;'></div>", unsafe_allow_html=True)
-
 
 def render_assessment_page():
     """渲染评估页面"""
@@ -552,10 +679,15 @@ def render_assessment_page():
         .stDownloadButton > button {
             font-size: 16px !important;
         }
-        /* Expander 标题 */
-        .st-expanderHeader {
-            font-size: 16px !important;
+        /* 调整上传图片按钮宽度为100% */
+
+        div[data-testid="stButton-upload_image_btn"] > button {
+            width: 100% !important;
+            padding: 0.5rem 1rem !important;
+            min-width: 100% !important;
+            box-sizing: border-box !important;
         }
+        
         /* 下拉框输入框和选中项 */
         div[data-baseweb="select"] > div > div > input,
         div[data-baseweb="select"] > div > div > div,
@@ -566,21 +698,32 @@ def render_assessment_page():
         label, .stTextInput label, .stSelectbox label, .stMultiSelect label {
             font-size: 16px !important;
         }
+        .st-emotion-cache-tn0cau {  
+            gap: 0 !important;  /* 覆盖1remgap */
+            margin-top: 0 !important;  
+            padding-top: 0 !important; 
+        }
+        
+        .stColumns {
+            gap: 0 !important;
+        }
         </style>
     """, unsafe_allow_html=True)
-
+    
     chat_manager = ChatManager()
     chat_manager.initialize_state()
-
+    chat_manager.update_progress() 
+    
     if st.session_state.chat_step < len(st.session_state.chat_history):
         st_autorefresh(interval=1500, key="chat_autorefresh")
+    
 
     for key, default in {
         "show_sidebar": False,
         "selected_image_path": None,
         "selected_image_label": None,
-        "typing_index": 0,
-        "chat_history": None,
+        "typing_index": 0,       
+        "chat_history": None,     
         "chat_step": 1,
         "last_update_time": time.time(),
     }.items():
@@ -589,7 +732,7 @@ def render_assessment_page():
 
     if st.session_state.show_sidebar:
         with st.sidebar:
-            st.markdown("### 📂 Select a sample knee image")
+            st.markdown("### 📂 Select a sample image")
             PREDEFINED_IMAGES = {
                 "Knee Image A": "images/knee_sample_1.png",
             }
@@ -602,6 +745,9 @@ def render_assessment_page():
                         st.session_state.selected_image_label = label
                         st.session_state.show_sidebar = False
                         st.rerun()
+    
+
+    st.markdown('<p class="chat-note">Demo chat interface (display only).</p>', unsafe_allow_html=True)
 
     col1, col2 = st.columns([1.2, 0.8])
 
@@ -612,9 +758,10 @@ def render_assessment_page():
 
         st.divider()
 
-        if st.button("📷 Upload Image"):
+        if st.button("📷 Upload Image", key="upload_image_btn", use_container_width=True):
             st.session_state.show_sidebar = True
 
+ 
         if st.session_state.selected_image_path and st.session_state.selected_image_label:
             st.success(f"✅ Selected: {st.session_state.selected_image_label}")
 
@@ -637,7 +784,7 @@ def render_assessment_page():
                 report_text = clean_text_for_pdf(report_text)
                 pdf_bytes = generate_pdf(report_text)
 
-                with open("custom_patient_report.json", "r", encoding="utf-8") as f:
+                with open("custom_patient_report_ori.json", "r", encoding="utf-8") as f:
                     custom_json_data = json.load(f)
                 json_bytes = io.BytesIO(json.dumps(custom_json_data, indent=2).encode('utf-8'))
 
@@ -671,7 +818,7 @@ def render_chat(role, message=None, table_df=None):
     }.get(role, "💬")
 
     bg_color = {
-        "User": "#f1f8e9",
+        "User": "#f1f8e9",  
         "AI": "#F2F2F2"
     }.get(role, "#eeeeee")
 
@@ -697,7 +844,7 @@ def render_chat(role, message=None, table_df=None):
     </div>
     """, unsafe_allow_html=True)
 
-
+    
 def render_centered_table(df):
     html_table = df.to_html(index=False)
     centered_html = f"""
@@ -708,7 +855,6 @@ def render_centered_table(df):
     </div>
     """
     st.markdown(centered_html, unsafe_allow_html=True)
-
 
 def render_prediction_report(params):
     st.markdown("<h4>📝 Comprehensive Prediction Report</h4>", unsafe_allow_html=True)
@@ -721,52 +867,53 @@ def render_prediction_report(params):
 
     st.markdown("<h5>📊 Symptom Trajectory Forecast (KOOS, 0–100)</h5>", unsafe_allow_html=True)
     symptom_table = {
-        "Metric": ["Right Knee Pain", "Right Knee Symptoms", "Sport/Recreation Function", "Quality of Life",
-                   "Left Knee Pain"],
+        "Metric": ["Right Knee Pain", "Right Knee Symptoms", "Left Knee Pain", "Left Knee Symptoms","Sport/Recreation Function", "Quality of Life"],
         "Current (V00)": [
-            params["symptom_trajectory.right_knee.pain.v00"],
-            params["symptom_trajectory.right_knee.symptoms.v00"],
-            params["symptom_trajectory.right_knee.sport_recreation_function.v00"],
-            params["symptom_trajectory.right_knee.quality_of_life.v00"],
-            params["symptom_trajectory.left_knee.pain.v00"]
+            params["KOOSPain_R"],
+            params["KOOSSym_R"],
+            params["LKPain_V00"],
+            params["LKSym_V00"],
+            params["KOOSSport"],
+            params["KQOL_V00"]
+            
         ],
         "Year 2 (V01)": [
-            params["symptom_trajectory.right_knee.pain.v01"],
-            params["symptom_trajectory.right_knee.symptoms.v01"],
-            params["symptom_trajectory.right_knee.sport_recreation_function.v01"],
-            params["symptom_trajectory.right_knee.quality_of_life.v01"],
-            params["symptom_trajectory.left_knee.pain.v01"]
+            97,
+            93,
+            89,
+            73,
+            58,
+            31  
         ],
         "Year 4 (V04)": [
-            params["symptom_trajectory.right_knee.pain.v04"],
-            params["symptom_trajectory.right_knee.symptoms.v04"],
-            params["symptom_trajectory.right_knee.sport_recreation_function.v04"],
-            params["symptom_trajectory.right_knee.quality_of_life.v04"],
-            params["symptom_trajectory.left_knee.pain.v04"]
+            97,
+            91,
+            84,
+            66,
+            75,
+            50
         ]
     }
-    render_chat("AI", "Here is the forecast of your knee-related symptoms over the coming years:",
-                pd.DataFrame(symptom_table))
+    render_chat("AI", "Here is the forecast of your knee-related symptoms over the coming years:", pd.DataFrame(symptom_table))
 
     # 影像预测（KL）
     st.markdown("<h5>🦴 Imaging Trajectory (KL grade, 0–4)</h5>", unsafe_allow_html=True)
     imaging_table = {
         "Knee": ["Right", "Left"],
         "Current": [
-            params["imaging_trajectory.right_knee.pain.v00"],
-            params["imaging_trajectory.left_knee.pain.v00"]
+            params["RKImg_V00"],
+            params["LKImg_V00"]
         ],
         "Year 2": [
-            params["imaging_trajectory.right_knee.pain.v01"],
-            params["imaging_trajectory.left_knee.pain.v01"]
+            "Severe",
+            "Mild"
         ],
         "Year 4": [
-            params["imaging_trajectory.right_knee.pain.v04"],
-            params["imaging_trajectory.left_knee.pain.v04"]
+            "Severe",
+            "Mild"
         ]
     }
-    render_chat("AI", "Here’s how your knee structure may change over time, based on imaging predictions:",
-                pd.DataFrame(imaging_table))
+    render_chat("AI", "Here’s how your knee structure may change over time, based on imaging predictions:", pd.DataFrame(imaging_table))
 
     # SHAP 解释
     st.markdown("<h5>💡 Key Contributing Factors (SHAP)</h5>", unsafe_allow_html=True)
@@ -775,13 +922,52 @@ def render_prediction_report(params):
         "Feature": [item["feature"] for item in shap_data],
         "Impact on KOOS Symptoms": [f"{item['impact']} ({item['effect']})" for item in shap_data]
     }
-    render_chat("AI", "These are the most impactful factors influencing your right knee symptoms at Year 2:",
-                pd.DataFrame(shap_table))
+    render_chat("AI", "These are the most impactful factors influencing your right knee symptoms at Year 2:", pd.DataFrame(shap_table))
+
+# def load_default_params():
+#     with open(PARAMS_FILE, "r") as f:
+#         return json.load(f)
+
+def load_default_params(file_path: str) -> dict:
+    
+    try:
+        with open(file_path, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"参数文件不存在: {file_path}")
+    except json.JSONDecodeError:
+        raise ValueError(f"参数文件格式错误（非有效的JSON）: {file_path}")
+    except Exception as e:
+        raise Exception(f"加载参数文件时出错: {str(e)}")
 
 
-def load_default_params():
-    with open(PARAMS_FILE, "r") as f:
-        return json.load(f)
+def multi_column_radio(label, options, cols=7, index=0):
+
+    key = f"multi_col_radio_{label}"
+    if key not in st.session_state:
+        st.session_state[key] = options[index] if options else None
+    
+    items_per_col = math.ceil(len(options) / cols) if options else 0
+    columns = st.columns(cols)
+
+    for col_idx in range(cols):
+        start_idx = col_idx * items_per_col
+        end_idx = start_idx + items_per_col
+        column_options = options[start_idx:end_idx]
+        
+        with columns[col_idx]:
+            for option in column_options:
+                # 为每个选项创建单选按钮
+                is_selected = (st.session_state[key] == option)
+                # 使用唯一key，但不直接修改其他选项的状态
+                if st.checkbox(option, value=is_selected, 
+                              key=f"{key}_{col_idx}_{option}"):
+                    if not is_selected:
+                        st.session_state[key] = option
+                        # 触发重新渲染以更新所有选项状态
+                        st.rerun()
+    
+    return st.session_state[key]
 
 
 def render_prediction_page():
@@ -790,59 +976,130 @@ def render_prediction_page():
     col1, col2 = st.columns([1.2, 0.8])
 
     with col1:
-        params = load_default_params()
+        params = load_default_params(PARAMS_FILE)
+        predict = load_default_params(PREDICT_FILE)
 
-        # 仅显示 key，如果 value 是基础类型，则展示值
         param_display_list = []
         display_to_key = {}
+        exclude_key = "key_factors.right_knee_symptoms_year2"
         for k, v in params.items():
-            if isinstance(v, (int, float, str)):
-                label = f"{k} ({v})"
-            else:
-                label = f"{k} (complex)"
+            # if isinstance(v, (int, float, str)):
+            if k == exclude_key:
+                continue
+            label = f"{k}"
+            # else:
+                # label = f"{k} (complex)"
             param_display_list.append(label)
             display_to_key[label] = k
+    
 
-        st.markdown("**Parameter Mode: `fixed parameter from Assess Agent`**")
+        st.markdown("**Parameter Mode: `fixed parameter from Assessment Agent`**")
 
-        with st.expander("Click to view parameters(Extracted from Assess Agent)"):
-            selected_display = st.radio(" ", param_display_list, index=0)
-
+        with st.expander("Click to view parameters"):
+            st.markdown("**The patient parameters are listed below, Click the box to view the values.**")
+            selected_display = multi_column_radio(" ", param_display_list, cols=7)
+            
             model = display_to_key[selected_display]
             threshold = params[model]
-
+        
             st.markdown("**Selected value:**")
             if isinstance(threshold, dict):
                 st.json(threshold)
             elif isinstance(threshold, list):
                 for i, item in enumerate(threshold):
-                    st.markdown(f"**Item {i + 1}:**")
+                    st.markdown(f"**Item {i+1}:**")
                     st.json(item)
             else:
                 st.write(threshold)
 
-        # 初始化 session state（首次运行时）
+            with st.expander("View abbreviation explanations"):
+                col1_exp, col2_exp = st.columns(2) 
+
+                with col1_exp:
+                    st.markdown("**X-ray parameters (Knee):**")
+                    x_ray_params = {
+                        "XRKL_L": "Kellgren–Lawrence grade, left knee",
+                        "XRKL_R": "Kellgren–Lawrence grade, right knee",
+                        "XRJSL_L": "Joint space narrowing, lateral, left knee",
+                        "XRJSM_L": "Joint space narrowing, medial, left knee",
+                        "XROSFL_L": "Osteophytes, femur lateral, left knee",
+                        "XROSFM_L": "Osteophytes, femur medial, left knee",
+                        "XROSTL_L": "Osteophytes, tibia lateral, left knee",
+                        "XROSTM_L": "Osteophytes, tibia medial, left knee",
+                        "XRJSL_R": "Joint space narrowing, lateral, right knee",
+                        "XRJSM_R": "Joint space narrowing, medial, right knee",
+                        "XROSFL_R": "Osteophytes, femur lateral, right knee",
+                        "XROSFM_R": "Osteophytes, femur medial, right knee",
+                    }
+                    for abbr, full_name in x_ray_params.items():
+                        st.markdown(f"- **{abbr}**: {full_name}")
+                    
+                    st.markdown("**Demographics / Basics:**")
+                    demo_params = {
+                        "AGE": "Age at baseline",
+                        "BMI": "Body Mass Index",
+                        "WEIGHT": "Body weight (kg)",
+                    }
+                    for abbr, full_name in demo_params.items():
+                        st.markdown(f"- **{abbr}**: {full_name}")
+                
+                with col2_exp:
+                    st.markdown("**X-ray parameters (cont.):**")
+                    x_ray_params_cont = {
+                        "XROSTL_R": "Osteophytes, tibia lateral, right knee",
+                        "XROSTM_R": "Osteophytes, tibia medial, right knee",
+                        "XRSCFL_R": "Subchondral cyst, femur lateral, right knee",
+                        "RKImg_V00": "Radiographic grade, right knee, baseline", 
+                        "LKImg_V00": "Radiographic grade, left knee, baseline",  
+                    }
+                    for abbr, full_name in x_ray_params_cont.items():
+                        st.markdown(f"- **{abbr}**: {full_name}")
+                    
+                    st.markdown("**Biomechanics (Force):**")
+                    bio_params = {
+                        "RFmaxF": "Right foot maximum forward force",
+                        "REmaxF": "Right foot maximum eversion force",
+                        "LFmaxF": "Left foot maximum forward force",
+                        "LEmaxF": "Left foot maximum eversion force",
+                        "RFmaxF_BMI": "Right foot max forward force normalized by BMI",
+                        "REmaxF_BMI": "Right foot max eversion force normalized by BMI",
+                        "LFmaxF_BMI": "Left foot max forward force normalized by BMI",
+                        "LEmaxF_BMI": "Left foot max eversion force normalized by BMI",
+                    }
+                    for abbr, full_name in bio_params.items():
+                        st.markdown(f"- **{abbr}**: {full_name}")
+                    
+                    st.markdown("**KOOS Questionnaire:**")
+                    koos_params = {
+                        "KOOSPain_R": "KOOS pain score, right knee, baseline",
+                        "KOOSSym_R": "KOOS symptoms score, right knee, baseline",
+                        "KOOSPain_L": "KOOS pain score, left knee, baseline",
+                        "KOOSSym_L": "KOOS symptoms score, left knee, baseline",
+                        "KOOSSport": "KOOS sport/recreation score, baseline",
+                        "KOOSQOL": "KOOS quality of life score, baseline"
+                    }
+                    for abbr, full_name in koos_params.items():
+                        st.markdown(f"- **{abbr}**: {full_name}")
+
         if "prediction_done" not in st.session_state:
             st.session_state["prediction_done"] = False
 
-        # 点击预测按钮，修改状态
         if st.button("Starting prediction", type="primary"):
             with st.spinner("Analysing"):
                 time.sleep(3)
             st.success("Prediction completed!")
             st.session_state["prediction_done"] = True
-
-        # ✅ 只在 prediction_done 为 True 时渲染报告和导出按钮
+        
         if st.session_state["prediction_done"]:
             render_prediction_report(params)
             spacer(16)
-
+        
             export_col1, export_col2 = st.columns([1, 1])
-
+        
             with export_col1:
-                pdf_text = generate_report_text_from_prediction(params)
+                pdf_text = generate_report_text_from_prediction(predict)
                 pdf_bytes = generate_pdf(pdf_text)
-
+        
                 st.download_button(
                     label="📄 Download Prediction Report as PDF",
                     data=pdf_bytes,
@@ -850,11 +1107,11 @@ def render_prediction_page():
                     mime="application/pdf",
                     use_container_width=True
                 )
-
+        
             with export_col2:
                 with open(PARAMS_FILE, "rb") as f:
                     json_bytes = f.read()
-
+            
                 st.download_button(
                     label="Download Prediction Report JSON",
                     data=json_bytes,
@@ -864,8 +1121,7 @@ def render_prediction_page():
                 )
 
     with col2:
-        safe_image_display(IMAGE_PATHS["predicting_framework"], "Framework for predicting progress risks",
-                           use_container_width=True)
+        safe_image_display(IMAGE_PATHS["predicting_framework"], "Framework for predicting progress risks", use_container_width=True)
 
 
 def render_agent_message_return_html(role: str, action_html: str, style_class: str) -> str:
@@ -878,7 +1134,6 @@ def render_agent_message_return_html(role: str, action_html: str, style_class: s
     </div>
     """
 
-
 def render_agent_message(role: str, action: str, style_class: str) -> str:
     action_html = markdown.markdown(action, extensions=["extra", "nl2br"])  # 转换 Markdown 为 HTML
     return f"""
@@ -887,7 +1142,6 @@ def render_agent_message(role: str, action: str, style_class: str) -> str:
         <div style="margin-top: 8px; text-align: left;">{action_html}</div>
     </div>
     """
-
 
 def extract_week_number(phase_name: str) -> int:
     """从 'Week 1–4'（含 en dash）中提取排序基准数字"""
@@ -907,6 +1161,7 @@ def render_exercise_plan_return_html(plan: Dict) -> str:
 
         markdown_text = f"<h4>Phase {i}: {phase}</h4>"
         markdown_text += f"<b>GOAL:</b> {goal}<br><br>"
+
 
         for item in prescriptions:
             category = item.get("Category", "Training")
@@ -929,7 +1184,7 @@ def render_exercise_plan_return_html(plan: Dict) -> str:
 def render_surgical_pharma_plan_return_html(plan_data: Dict) -> List[str]:
     """
     返回 Surgical & Pharmacological Specialist Agent 的多个 HTML 块列表，
-    每个块可被单独传入 st.markdown(..., unsafe_allow_html=True) 渲染。
+    每个块单独传入 st.markdown(..., unsafe_allow_html=True) 渲染。
     """
     html_blocks = []
 
@@ -957,29 +1212,23 @@ def render_surgical_pharma_plan_return_html(plan_data: Dict) -> List[str]:
             except ValueError:
                 return ""
 
-        clinical = extract_section(guideline_text, 'The patient reports', 'Demonstrates') or extract_section(
-            guideline_text, 'Experiences', 'has limited') or ""
-        physical = extract_section(guideline_text, 'Demonstrates', 'Shows') or extract_section(guideline_text,
-                                                                                               'has limited',
-                                                                                               'shows') or ""
-        radio = extract_section(guideline_text, 'Shows', 'Total') or extract_section(guideline_text, 'exhibits',
-                                                                                     'Total') or ""
+        clinical = extract_section(guideline_text, 'The patient reports', 'Demonstrates') or extract_section(guideline_text, 'Experiences', 'has limited') or ""
+        physical = extract_section(guideline_text, 'Demonstrates', 'Shows') or extract_section(guideline_text, 'has limited', 'shows') or ""
+        radio = extract_section(guideline_text, 'Shows', 'Total') or extract_section(guideline_text, 'exhibits', 'Total') or ""
 
         guideline_markdown += f"- **Clinical Presentation:** {clinical}\n"
         guideline_markdown += f"- **Physical Findings:** {physical}\n"
         guideline_markdown += f"- **Radiographic Features:** {radio}\n"
         guideline_markdown += f"**Recommendations:**\n"
 
-        recos = re.findall(
-            r"(Total knee arthroplasty|Unicompartmental knee arthroplasty.*?|Realignment Osteotomy.*?)\s*(Appropriate|May Be Appropriate|Rarely Appropriate)\s*(\d)",
-            guideline_text)
+        recos = re.findall(r"(Total knee arthroplasty|Unicompartmental knee arthroplasty.*?|Realignment Osteotomy.*?)\s*(Appropriate|May Be Appropriate|Rarely Appropriate)\s*(\d)", guideline_text)
         for rec in recos:
             guideline_markdown += f"- {rec[0]}: {rec[1]} ({rec[2]}/9)\n"
         guideline_markdown += "\n"
 
     guideline_html = render_agent_message_return_html(
         role="B. Surgical & Pharmacological Specialist Agent",
-        action_html=markdown.markdown(guideline_markdown, extensions=["extra", "nl2br"]),
+        action_html=markdown.markdown(guideline_markdown,extensions=["extra", "nl2br"]),
         style_class="surgical"
     )
     html_blocks.append(guideline_html)
@@ -1073,7 +1322,7 @@ def render_nutrition_psychology_plan_return_html(plan_data: Dict) -> List[str]:
 
     nutrition_html = render_agent_message_return_html(
         role="C. Nutritional & Psychological Specialist Agent",
-        action_html=markdown.markdown(nutrition_md, extensions=["extra", "nl2br"]),
+        action_html=markdown.markdown(nutrition_md,extensions=["extra", "nl2br"]),
         style_class="nutrition"
     )
     html_blocks.append(nutrition_html)
@@ -1195,7 +1444,7 @@ def render_progress_bar(step: int, total: int):
     progress = step / total
     st.markdown(f"""
     <div style="background-color: #eee; height: 8px; width: 100%; border-radius: 4px; margin-bottom: 12px;">
-        <div style="height: 100%; width: {progress * 100:.1f}%; background-color: #4CAF50; border-radius: 4px;"></div>
+        <div style="height: 100%; width: {progress*100:.1f}%; background-color: #4CAF50; border-radius: 4px;"></div>
     </div>
     """, unsafe_allow_html=True)
     st.markdown(f"<small style='color: grey;'>Progress: {int(progress * 100)}%</small>", unsafe_allow_html=True)
@@ -1222,6 +1471,7 @@ def render_all_agents_auto():
         for html in html_blocks:
             st.markdown(html, unsafe_allow_html=True)
 
+
     # ✅ Agent C: Nutrition & Psychology
     progress_placeholder.markdown(render_progress_bar_html(3, total_agents), unsafe_allow_html=True)
     nutrition_plan = load_plan("nutrition_psychology")
@@ -1231,6 +1481,8 @@ def render_all_agents_auto():
         html_blocks = render_nutrition_psychology_plan_return_html(nutrition_plan)
         for html in html_blocks:
             st.markdown(html, unsafe_allow_html=True)
+
+
 
     with st.spinner("Clinical Decision-Making Agent reasoning..."):
         time.sleep(3)
@@ -1247,76 +1499,71 @@ def render_progress_bar_html(step: int, total: int) -> str:
     progress = step / total
     return f"""
     <div style="background-color: #eee; height: 8px; width: 100%; border-radius: 4px; margin-bottom: 12px;">
-        <div style="height: 100%; width: {progress * 100:.1f}%; background-color: #4CAF50; border-radius: 4px;"></div>
+        <div style="height: 100%; width: {progress*100:.1f}%; background-color: #4CAF50; border-radius: 4px;"></div>
     </div>
     <small style='color: grey;'>Progress: {int(progress * 100)}%</small>
     """
 
-
 def render_therapy_page():
     """渲染治疗推荐页面"""
-    inject_agent_styles()
+    inject_agent_styles() 
     col1, col2 = st.columns([1.5, 1])
 
     with col2:
-        safe_image_display(IMAGE_PATHS["recommendation_framework"], "Framework for personalizing treatment",
-                           use_container_width=True)
-
+        safe_image_display(IMAGE_PATHS["recommendation_framework"], "Framework for personalizing treatment", use_container_width=True)
+ 
     with col1:
         st.subheader("🩺 Quick Therapy Demo")
 
-        # 加载病例数据
         case_data = load_case_data()
         if not case_data:
             st.warning("Case data cannot be loaded.")
             return
-
+        
         case_names = list(case_data.keys())
         case_options = [""] + case_names
-
+        
         selected_case = st.selectbox("Select a sample case：", case_options)
-
+        
         st.markdown(get_chat_styles(), unsafe_allow_html=True)
-
+        
         if selected_case != "":
             case = case_data[selected_case]
-
+            
             if "start_clicked" not in st.session_state:
                 st.session_state.start_clicked = False
-
+        
             if not st.session_state.get("start_clicked", False):
                 st.success(f"Selected：{selected_case}")
-
+            
                 st.markdown("### 📑 Case Reports")
                 for report_name in case.get("reports", []):
                     st.markdown(f"📄 {report_name}")
-
+            
                 # if st.button("▶️ Start Multi-Agent Reasoning"):
-                #     st.session_state.start_clicked = True
+                #     st.session_state.start_clicked = True 
                 #     st.query_params.update({"start": "1"})
-
-                button_placeholder = st.empty()  # 创建按钮容器
-                spacer_placeholder = st.empty()  # 创建一个“空白占位”容器用于替代按钮
-
+                
+                button_placeholder = st.empty()
+                spacer_placeholder = st.empty()
+                
                 if "start_clicked" not in st.session_state:
                     st.session_state.start_clicked = False
-
+                
                 if not st.session_state.start_clicked:
                     if button_placeholder.button("▶️ Start Multi-Agent Reasoning"):
                         st.session_state.start_clicked = True
                         st.query_params.update({"start": "1"})
-                        # 清空按钮，并填入等高的空白 div 避免布局闪烁
+
                         button_placeholder.empty()
                         spacer_placeholder.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True)
                 else:
                     button_placeholder.empty()
                     spacer_placeholder.empty()
                     render_all_agents_auto()
-
-
+                    
             else:
-                # 展示多智能体对话部分
-                render_all_agents_auto()  # 👈 自动延迟依次渲染各个Agent对话 + 进度条
+                render_all_agents_auto() 
 
 
 # =============================================================================
@@ -1325,13 +1572,13 @@ def render_therapy_page():
 def main():
     # 页面配置
     st.set_page_config(**PAGE_CONFIG)
-
+    
     # 渲染导航
     render_navigation()
-
+    
     # 获取当前页面
     page = st.query_params.get("page", "Home")
-
+    
     # 路由到对应页面
     page_routes = {
         "Home": render_home_page,
@@ -1339,13 +1586,12 @@ def main():
         "Predicting Progression Risk": render_prediction_page,
         "Tailored Therapy Recommendation": render_therapy_page
     }
-
+    
     render_func = page_routes.get(page)
     if render_func:
         render_func()
     else:
         st.error(f"未知页面: {page}")
-
 
 if __name__ == "__main__":
     main()
