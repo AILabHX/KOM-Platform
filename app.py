@@ -941,7 +941,7 @@ def load_default_params(file_path: str) -> dict:
         raise Exception(f"加载参数文件时出错: {str(e)}")
 
 
-def multi_column_radio(label, options, cols=7, index=0):
+def multi_column_radio(label, options, cols=6, index=0):
 
     key = f"multi_col_radio_{label}"
     if key not in st.session_state:
@@ -997,7 +997,7 @@ def render_prediction_page():
 
         with st.expander("Click to view parameters"):
             st.markdown("**The patient parameters are listed below, Click the box to view the values.**")
-            selected_display = multi_column_radio(" ", param_display_list, cols=7)
+            selected_display = multi_column_radio(" ", param_display_list, cols=6)
             
             model = display_to_key[selected_display]
             threshold = params[model]
