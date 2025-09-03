@@ -573,63 +573,23 @@ def render_home_page():
     """渲染首页"""
     abstract_col, figure_col = st.columns([0.9, 1.1])
     
-    # with abstract_col:
-    #     st.markdown('<h4 style="font-size:22px;">About</h4>', unsafe_allow_html=True)
-    #     st.markdown("""
-    #     平台使用流程等
-    #     """)
     with abstract_col:
         st.markdown('<h4 style="font-size:22px;">About</h4>', unsafe_allow_html=True)
         st.markdown("""
-KOM: Knee Osteoarthritis Chronic Disease Management System
-From the Sports Medicine Center, West China Hospital, Sichuan University
-KOM is an intelligent, multi-agent (Multi-Agent) AI system that supports the full KOA care pathway—assessment → risk prediction → individualized therapy—to enable precise, standardized, and scalable chronic disease management for knee osteoarthritis.
+Code and Data are available at: https://github.com/jacobliuweizhi/KOM
 
-Quick Start: How to Use the Web App
+Introduction to KOM
+Knee Osteoarthritis Management (KOM) system is an intelligent, multi-agent (Multi-Agent) AI system that supports the full KOA care management pathway—assessment → risk prediction → individualized therapy—to enable precise, standardized, and scalable disease management for knee osteoarthritis.
+
+Quick Start
 In the top-right corner of the page, you’ll see three buttons, each mapping to a core module. Click from left to right to experience the end-to-end AI-assisted diagnosis and prescription flow.
 
-Interaction tips
-In Assessment, start a guided dialogue to capture medical history. You can also upload bilateral AP knee X-rays via the button below and complete structured data entry with on-screen prompts. Go to Risk to automatically pull prior inputs and generate 2-year / 4-year predictions for symptoms (KOOS) and radiographic outcomes, with patient-specific risk factor explanations (via SHAP). In Therapy, launch a multidisciplinary, multi-agent (MDT) discussion to produce an evidence-based, individualized, and actionable management plan (covering exercise, surgical/pharmacologic, nutrition, and psychological sub-prescriptions). Each module can also be used independently with manual data entry—handy for different clinical settings.
-
-What KOM Is
-KOM (Knee Osteoarthritis Manager) is the first end-to-end multi-agent AI system purpose-built for KOA, developed by the Sports Medicine Center, West China Hospital, with a cross-disciplinary team. It integrates LLMs, ResNet-based imaging, classical machine learning, and MDT-style multi-agent collaboration to cover:
-Disease Assessment: structured dialogue + automated X-ray analysis to generate a standardized case report.
-Progression Prediction: 2-/4-year forecasts for KOOS subscales and KL grades, plus individualized etiology/risk explanations.
-Individualized Therapy: multi-agent simulation of MDT to output evidence-based, executable plans.
-
 Modules & Capabilities
-1) Assessment Agent
-Structured dialogue intake (LLM with optimized prompts): auto-completes missing fields, explains medical terms, and guides KOOS collection.
-Intelligent X-ray analysis: a deep-learning pipeline trained on the OAI dataset for knee localization, KOA grading, medial/lateral joint space narrowing, osteophytes, and subchondral sclerosis.
-Output: one-click case evaluation report in clinical style. 
+1.	Assessment Agent: helps complete missing information, explains medical terms, and guides KOOS collection. Uses AI to analyze X-rays for knee positioning, KOA grading, joint space narrowing, and bone changes. Output: one-click case evaluation report in clinical style.
+2.	Risk Agent: Predicts how symptoms and X-ray findings will change over 4 years. Shows which factors (like bone spurs, pain levels, and muscle strength) contribute most to each patient's risk, helping guide treatment decisions.
+3.	Treatment Multi-Agent Cluster (Therapy Agent) MDT via multi-agent collaboration: Creates personalized treatment plans through teamwork between specialized agents for Exercise/Rehab, Orthopedics, Psycho-Nutrition, and Clinical Integration. Recommendations are based on extensive medical literature (over 4,000 research entries) and follow established frameworks for exercise and nutrition while prioritizing safety and practical advice.
+This website is at an early stage of development and intended for research purposes only. For collaboration or to report bugs, please contact us at lijian_sportsmed@163.com. Thank you!
 
-2) Progression Prediction Agent (Risk Agent)
-Functional outcomes: regression for KOOS subscales at 2 and 4 years. Radiographic outcomes: classification for KL grades at 2 and 4 years (ensemble of algorithms). Explainability: SHAP shows each patient’s risk contributions (e.g., osteophytes, pain scores, muscle strength) to guide interventions. 
-3) Treatment Multi-Agent Cluster (Therapy Agent)
-MDT via multi-agent collaboration: Exercise/Rehab, Orthopedics (surgery/pharmacology), Psycho-Nutrition, and a Clinical Integration agent.
-Evidence bases: structured entries curated from guidelines and peer-reviewed literature (Exercise 975; Surgery 1549; Rehab 934; Psychology 210; Nutrition 349).Output: individualized plans aligned with FITT-VP (exercise) and ABCMV (nutrition), emphasizing safety and actionability.
-
-Workflow at a Glance
-Data Intake: upload X-rays + structured interview
-Auto Analysis: radiographic grading & key signs → evaluation report
-Risk Prediction: 2-/4-year functional & imaging outcomes + personalized risk explanation
-MDT Therapy: multi-agent discussion → evidence-based individualized plan
-Review & Export: clinicians can revise at any step and export standardized documents
-
-Code & Live Demo
-GitHub (Open Source): https://github.com/jacobliuweizhi/KOM
-Live Demo (Hugging Face Spaces):
-https://huggingface.co/spaces/Miemie123/Streamlit?page=Tailored+Therapy+Recommendation&start=1
-License: GNU AGPL v3.0. RAG references and example code are included in the repo.
-
-Ongoing Research & Productization
-Large-scale RCT: Evaluating KOM-assisted care vs. routine clinical workflows, focusing on real-world effectiveness and safety.
-Sports-Med LLM: In parallel development to enhance cross-task generalization and on-device, real-time assessment—especially for non-radiographic scenarios.
-
-Team & Contact (Corresponding Authors)
-Prof. Yong Nie (Department of Orthopedic Surgery, West China Hospital) ｜ nieyong1983@wchscu.cn
-Prof. Kang Li (Sichuan University / Shanghai AI Lab) ｜ likang@wchscu.cn
-Prof. Jian Li (Sports Medicine Center, West China Hospital) ｜ lijian_sportsmed@163.com
         """)
 
     with figure_col:
