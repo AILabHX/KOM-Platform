@@ -258,7 +258,7 @@ def get_navigation_styles(logo_base64: str) -> str:
             <img src="data:image/png;base64,{logo_base64}" class="logo-img" />
             <div class="app-title">
                 <div>Knee Osteoarthritis Management Platform</div>
-                <div>膝关节骨关节炎人工智能平台</div>
+                <div>膝骨关节炎人工智能平台</div>
             </div>
         </div>
         <div class="nav-buttons">
