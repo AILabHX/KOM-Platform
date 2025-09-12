@@ -63,7 +63,6 @@ def get_base64_image(image_path: str) -> Optional[str]:
 
 @st.cache_data
 def load_initial_chat_history(file_path: str = "initial_chat.json") -> List[Dict]:
-    """从 JSON 文件加载初始聊天历史"""
     try:
         if Path(file_path).exists():
             with open(file_path, "r", encoding="utf-8") as f:
@@ -86,7 +85,6 @@ def load_analysis_report(json_file="assess_result.json") -> Dict:
 
 @st.cache_data
 def load_case_data() -> Dict:
-    """加载病例数据"""
     try:
         if Path(CASES_FILE).exists():
             with open(CASES_FILE, "r", encoding="utf-8") as f:
@@ -103,19 +101,19 @@ def load_plan(agent_type: str):
 
 def clean_text_for_pdf(text: str) -> str:
     replacements = {
-        "–": "-",   # 长破折号
-        "—": "-",   # 全角破折号
-        "“": "\"",  # 中文引号
+        "–": "-",  
+        "—": "-",  
+        "“": "\"",  
         "”": "\"",
         "’": "'",
-        "•": "-",   # 项目符号
+        "•": "-", 
         "→": "->",
         "…": "...",
         "©": "(c)",
     }
     for old, new in replacements.items():
         text = text.replace(old, new)
-    return text.encode("latin-1", "ignore").decode("latin-1")  # 丢弃不可编码字符
+    return text.encode("latin-1", "ignore").decode("latin-1")
 
 
 def strip_non_latin1(text: str) -> str:
@@ -125,9 +123,8 @@ def strip_non_latin1(text: str) -> str:
 def generate_pdf(text: str) -> bytes:
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)  # 保留默认字体
+    pdf.set_font("Arial", size=12)
 
-    # 🔧 逐行添加，过滤掉无法编码的字符
     for line in text.split("\n"):
         clean_line = strip_non_latin1(line)
         pdf.multi_cell(0, 10, txt=clean_line)
@@ -1503,98 +1500,39 @@ def render_therapy_page():
                 st.markdown("### 📑 Case Reports")
                 for report_name in case.get("reports", []):
                     st.markdown(f"📄 {report_name}")
-                
-                # 使用带回调的按钮，确保状态更新时机正确
+
                 button_placeholder = st.empty()
                 spacer_placeholder = st.empty()
-                
-                # 显示按钮并绑定回调
+
                 if button_placeholder.button(
                     "▶️ Start Multi-Agent Reasoning",
                     on_click=on_start_click,
-                    # 添加key确保按钮唯一性
+
                     key="start_reasoning_btn"
                 ):
-                    # 这里的代码会在页面重运行后执行
+
                     button_placeholder.empty()
                     spacer_placeholder.markdown(
                         "<div style='height: 48px;'></div>", 
                         unsafe_allow_html=True
                     )
-                    # 触发重运行后立即渲染 agents
+
                     render_all_agents_auto()
             else:
-                # 已点击状态，直接渲染
+
                 render_all_agents_auto()
-
-    # with col1:
-    #     st.subheader("🩺 Quick Therapy Demo")
-
-    #     case_data = load_case_data()
-    #     if not case_data:
-    #         st.warning("Case data cannot be loaded.")
-    #         return
-        
-    #     case_names = list(case_data.keys())
-    #     case_options = [""] + case_names
-        
-    #     selected_case = st.selectbox("Select a sample case：", case_options)
-        
-    #     st.markdown(get_chat_styles(), unsafe_allow_html=True)
-        
-    #     if selected_case != "":
-    #         case = case_data[selected_case]
-            
-    #         if "start_clicked" not in st.session_state:
-    #             st.session_state.start_clicked = False
-        
-    #         if not st.session_state.get("start_clicked", False):
-    #             st.success(f"Selected：{selected_case}")
-            
-    #             st.markdown("### 📑 Case Reports")
-    #             for report_name in case.get("reports", []):
-    #                 st.markdown(f"📄 {report_name}")
-            
-    #             # if st.button("▶️ Start Multi-Agent Reasoning"):
-    #             #     st.session_state.start_clicked = True 
-    #             #     st.query_params.update({"start": "1"})
-                
-    #             button_placeholder = st.empty()
-    #             spacer_placeholder = st.empty()
-                
-    #             if "start_clicked" not in st.session_state:
-    #                 st.session_state.start_clicked = False
-                
-    #             if not st.session_state.start_clicked:
-    #                 if button_placeholder.button("▶️ Start Multi-Agent Reasoning"):
-    #                     st.session_state.start_clicked = True
-    #                     st.query_params.update({"start": "1"})
-
-    #                     button_placeholder.empty()
-    #                     spacer_placeholder.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True)
-    #             else:
-    #                 button_placeholder.empty()
-    #                 spacer_placeholder.empty()
-    #                 render_all_agents_auto()
-                    
-    #         else:
-    #             render_all_agents_auto() 
-
 
 # =============================================================================
 # 主程序
 # =============================================================================
 def main():
-    # 页面配置
+
     st.set_page_config(**PAGE_CONFIG)
-    
-    # 渲染导航
+
     render_navigation()
-    
-    # 获取当前页面
+
     page = st.query_params.get("page", "Home")
-    
-    # 路由到对应页面
+
     page_routes = {
         "Home": render_home_page,
         "Assessing Current Status": render_assessment_page,
