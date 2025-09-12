@@ -1474,7 +1474,10 @@ def render_therapy_page():
  
     with col1:
         st.subheader("🩺 Quick Therapy Demo")
-
+    
+        if "start_clicked" not in st.session_state:
+            st.session_state.start_clicked = False
+    
         case_data = load_case_data()
         if not case_data:
             st.warning("Case data cannot be loaded.")
@@ -1490,40 +1493,92 @@ def render_therapy_page():
         if selected_case != "":
             case = case_data[selected_case]
             
-            if "start_clicked" not in st.session_state:
-                st.session_state.start_clicked = False
-        
-            if not st.session_state.get("start_clicked", False):
+            def on_start_click():
+                st.session_state.start_clicked = True
+                st.query_params.update({"start": "1"})
+            
+            if not st.session_state.start_clicked:
                 st.success(f"Selected：{selected_case}")
             
                 st.markdown("### 📑 Case Reports")
                 for report_name in case.get("reports", []):
                     st.markdown(f"📄 {report_name}")
-            
-                # if st.button("▶️ Start Multi-Agent Reasoning"):
-                #     st.session_state.start_clicked = True 
-                #     st.query_params.update({"start": "1"})
                 
+                # 使用带回调的按钮，确保状态更新时机正确
                 button_placeholder = st.empty()
                 spacer_placeholder = st.empty()
                 
-                if "start_clicked" not in st.session_state:
-                    st.session_state.start_clicked = False
-                
-                if not st.session_state.start_clicked:
-                    if button_placeholder.button("▶️ Start Multi-Agent Reasoning"):
-                        st.session_state.start_clicked = True
-                        st.query_params.update({"start": "1"})
-
-                        button_placeholder.empty()
-                        spacer_placeholder.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True)
-                else:
+                # 显示按钮并绑定回调
+                if button_placeholder.button(
+                    "▶️ Start Multi-Agent Reasoning",
+                    on_click=on_start_click,
+                    # 添加key确保按钮唯一性
+                    key="start_reasoning_btn"
+                ):
+                    # 这里的代码会在页面重运行后执行
                     button_placeholder.empty()
-                    spacer_placeholder.empty()
+                    spacer_placeholder.markdown(
+                        "<div style='height: 48px;'></div>", 
+                        unsafe_allow_html=True
+                    )
+                    # 触发重运行后立即渲染 agents
                     render_all_agents_auto()
-                    
             else:
-                render_all_agents_auto() 
+                # 已点击状态，直接渲染
+                render_all_agents_auto()
+
+    # with col1:
+    #     st.subheader("🩺 Quick Therapy Demo")
+
+    #     case_data = load_case_data()
+    #     if not case_data:
+    #         st.warning("Case data cannot be loaded.")
+    #         return
+        
+    #     case_names = list(case_data.keys())
+    #     case_options = [""] + case_names
+        
+    #     selected_case = st.selectbox("Select a sample case：", case_options)
+        
+    #     st.markdown(get_chat_styles(), unsafe_allow_html=True)
+        
+    #     if selected_case != "":
+    #         case = case_data[selected_case]
+            
+    #         if "start_clicked" not in st.session_state:
+    #             st.session_state.start_clicked = False
+        
+    #         if not st.session_state.get("start_clicked", False):
+    #             st.success(f"Selected：{selected_case}")
+            
+    #             st.markdown("### 📑 Case Reports")
+    #             for report_name in case.get("reports", []):
+    #                 st.markdown(f"📄 {report_name}")
+            
+    #             # if st.button("▶️ Start Multi-Agent Reasoning"):
+    #             #     st.session_state.start_clicked = True 
+    #             #     st.query_params.update({"start": "1"})
+                
+    #             button_placeholder = st.empty()
+    #             spacer_placeholder = st.empty()
+                
+    #             if "start_clicked" not in st.session_state:
+    #                 st.session_state.start_clicked = False
+                
+    #             if not st.session_state.start_clicked:
+    #                 if button_placeholder.button("▶️ Start Multi-Agent Reasoning"):
+    #                     st.session_state.start_clicked = True
+    #                     st.query_params.update({"start": "1"})
+
+    #                     button_placeholder.empty()
+    #                     spacer_placeholder.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True)
+    #             else:
+    #                 button_placeholder.empty()
+    #                 spacer_placeholder.empty()
+    #                 render_all_agents_auto()
+                    
+    #         else:
+    #             render_all_agents_auto() 
 
 
 # =============================================================================
